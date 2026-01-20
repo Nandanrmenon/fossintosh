@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import type { App } from "./types/app.types";
 import "./App.css";
 import { AppGrid } from "./components/AppGrid";
+import Header from "./components/Home/Header";
 
 interface DownloadState {
   [appId: string]: {
@@ -221,10 +222,12 @@ function App() {
     );
 
   return (
-    <div className="app">
-      <header className="app-header">
+    <div className="bg-zinc-50 min-h-screen dark:bg-zinc-900">
+      {/* <header className="app-header">
         <h1 className="text-xl font-bold">Fossintosh</h1>
-      </header>
+      </header> */}
+
+      <Header title="Fossintosh" />
 
       {error && <div className="error-message">{error}</div>}
 

@@ -21,11 +21,11 @@ export const Button: React.FC<ButtonProps> = ({
     "font-semibold rounded-lg transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variantStyles = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 active:scale-95",
-    secondary: "bg-gray-200 text-gray-800 hover:bg-gray-300 active:scale-95",
-    danger: "bg-red-600 text-white hover:bg-red-700 active:scale-95 ",
-    success: "bg-green-600 text-white hover:bg-green-700 active:scale-95",
-    ghost: "bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200",
+    primary: "bg-blue-600 text-white hover:bg-blue-700",
+    secondary: "bg-gray-200 text-gray-800 hover:bg-gray-300",
+    danger: "bg-red-600 text-white hover:bg-red-700",
+    success: "bg-green-600 text-white hover:bg-green-700",
+    ghost: "bg-transparent text-gray-700 hover:bg-gray-100",
   };
 
   const sizeStyles = {

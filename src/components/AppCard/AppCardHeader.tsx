@@ -19,7 +19,7 @@ export function AppHeader({ app }: AppHeaderProps) {
       />
       <div>
         <p className="text-2xl font-semibold">{app.name}</p>
-        <p className="text-sm">{app.author}</p>
+        <p className="text-sm text-zinc-500">{app.author}</p>
       </div>
     </div>
   );

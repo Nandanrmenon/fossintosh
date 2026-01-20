@@ -32,7 +32,7 @@ export function AppCard({
   onInstall,
 }: AppCardProps) {
   return (
-    <div className="p-8 border border-zinc-200 rounded-lg inset-shadow-sm bg-white">
+    <div className="p-8 rounded-lg bg-zinc-50 text-black min-h-screen dark:bg-zinc-800 dark:text-white shadow-md flex flex-col gap-4">
       <AppHeader app={app} />
 
       <div className="app-content">
@@ -72,17 +72,16 @@ export function AppCard({
         {!state.isInstalling &&
           state.installProgress === 100 &&
           !state.error && <SuccessMessage message={state.installStatus} />}
-
-        {/* Action Buttons */}
-        <ActionButtons
-          appId={app.id}
-          downloadUrl={app.downloadUrl}
-          state={state}
-          onDownload={onDownload}
-          onCancelDownload={onCancelDownload}
-          onInstall={onInstall}
-        />
       </div>
+      {/* Action Buttons */}
+      <ActionButtons
+        appId={app.id}
+        downloadUrl={app.downloadUrl}
+        state={state}
+        onDownload={onDownload}
+        onCancelDownload={onCancelDownload}
+        onInstall={onInstall}
+      />
     </div>
   );
 }
