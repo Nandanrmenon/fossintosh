@@ -87,16 +87,51 @@ fn get_apps_file_path() -> PathBuf {
     PathBuf::from("apps.json")
 }
 
+// Configuration for apps registry URL
+const APPS_REGISTRY_BASE_URL: &str =
+    "https://raw.githubusercontent.com/Nandanrmenon/fossintosh-repo/main";
+const APPS_REGISTRY_INDEX_URL: &str =
+    "https://raw.githubusercontent.com/Nandanrmenon/fossintosh-repo/main/index.json";
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AppRegistry {
+    pub id: String,
+    pub url: String,
+}
+
 // Command to fetch apps from your registry
 #[tauri::command]
 pub async fn fetch_apps() -> Result<Vec<App>, String> {
-    let apps_path = get_apps_file_path();
+    let client = reqwest::Client::new();
 
-    let file_content =
-        fs::read_to_string(&apps_path).map_err(|e| format!("Failed to read apps.json: {}", e))?;
+    // Fetch the index (list of app IDs)
+    let app_ids: Vec<String> = client
+        .get(APPS_REGISTRY_INDEX_URL)
+        .send()
+        .await
+        .map_err(|e| format!("Failed to fetch registry index: {}", e))?
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse registry index: {}", e))?;
 
-    let apps: Vec<App> = serde_json::from_str(&file_content)
-        .map_err(|e| format!("Failed to parse apps.json: {}", e))?;
+    // Fetch each app in parallel
+    let mut app_futures = vec![];
+    for app_id in app_ids {
+        let client = client.clone();
+        let url = format!("{}/apps/{}.json", APPS_REGISTRY_BASE_URL, app_id);
+        let future = async move { client.get(&url).send().await.ok()?.json::<App>().await.ok() };
+        app_futures.push(future);
+    }
+
+    let apps: Vec<App> = futures_util::future::join_all(app_futures)
+        .await
+        .into_iter()
+        .filter_map(|app| app)
+        .collect();
+
+    if apps.is_empty() {
+        return Err("Failed to fetch any apps from registry".to_string());
+    }
 
     Ok(apps)
 }
