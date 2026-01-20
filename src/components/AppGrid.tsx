@@ -19,8 +19,16 @@ export function AppGrid({
   onInstall,
   onCardClick,
 }: AppGridProps) {
+  if (apps.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <p className="text-zinc-500 dark:text-zinc-400">No apps available</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid gap-5 px-1 pb-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {apps.map((app) => {
         const state = downloadStates[app.id] || {
           isDownloading: false,

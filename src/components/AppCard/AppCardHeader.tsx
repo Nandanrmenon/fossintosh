@@ -6,11 +6,11 @@ interface AppHeaderProps {
 
 export function AppHeader({ app }: AppHeaderProps) {
   return (
-    <div className="mb-4 flex gap-4 items-center">
+    <div className="flex gap-4 items-center justify-center">
       <img
         src={app.icon}
         alt={app.name}
-        className="w-16 h-16 object-contain"
+        className="w-12 h-12 object-contain"
         draggable={false}
         onError={(e) => {
           e.currentTarget.src =
@@ -18,8 +18,12 @@ export function AppHeader({ app }: AppHeaderProps) {
         }}
       />
       <div>
-        <p className="text-2xl font-semibold">{app.name}</p>
-        <p className="text-sm text-zinc-500">{app.author}</p>
+        <p className="text-lg font-semibold text-ellipsis line-clamp-1">
+          {app.name}
+        </p>
+        <p className="text-sm text-zinc-500 text-ellipsis line-clamp-1">
+          {app.author}
+        </p>
       </div>
     </div>
   );

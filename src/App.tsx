@@ -8,7 +8,6 @@ import { AppDetail } from "./components/AppDetail";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { DiscoverPage } from "./pages/DiscoverPage";
 import { UpdatePage } from "./pages/UpdatePage";
-import Header from "./components/Home/Header";
 
 type MenuKey = "discover" | "categories" | "update";
 
@@ -365,22 +364,8 @@ function App() {
 
       <main className="relative flex-1 overflow-hidden">
         <div className="flex h-full flex-col">
-          {/* <Header
-            title={
-              activeMenu === "categories"
-                ? "Categories"
-                : activeMenu === "update"
-                  ? "Updates"
-                  : "Discover"
-            }
-          /> */}
-
-          <div className="relative flex-1">
-            <div
-              className={`h-full overflow-y-auto transition duration-300 ${
-                selectedApp ? "md:pr-3" : ""
-              }`}
-            >
+          <div className="relative flex-1 overflow-hidden">
+            <div className="h-full overflow-y-auto">
               <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6">
                 {error && <div className="error-message">{error}</div>}
 
