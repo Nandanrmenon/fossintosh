@@ -7,9 +7,14 @@ import "./App.css";
 interface DownloadState {
   [appId: string]: {
     isDownloading: boolean;
+    isInstalling: boolean;
     progress: number;
+    installProgress: number;
     status: string;
+    installStatus: string;
     error?: string;
+    filePath?: string;
+    isDownloaded: boolean;
   };
 }
 
@@ -39,6 +44,7 @@ function App() {
         setDownloadStates((prev) => ({
           ...prev,
           [data.app_id]: {
+            ...(prev[data.app_id] || {}),
             isDownloading: true,
             progress: data.progress,
             status: data.status,
@@ -58,11 +64,55 @@ function App() {
         setDownloadStates((prev) => ({
           ...prev,
           [data.app_id]: {
+            ...(prev[data.app_id] || {}),
             isDownloading: false,
             progress: data.success ? 100 : 0,
             status: data.success
               ? `Downloaded to Downloads/${data.app_id}.dmg`
               : "Download failed",
+            error: data.error,
+            filePath: data.file_path,
+            isDownloaded: data.success,
+          },
+        }));
+      });
+
+      // Listen to install progress events
+      await listen("install_progress", (event) => {
+        const data = event.payload as {
+          app_id: string;
+          progress: number;
+          status: string;
+        };
+
+        setDownloadStates((prev) => ({
+          ...prev,
+          [data.app_id]: {
+            ...(prev[data.app_id] || {}),
+            isInstalling: true,
+            installProgress: data.progress,
+            installStatus: data.status,
+          },
+        }));
+      });
+
+      // Listen to install completion events
+      await listen("install_complete", (event) => {
+        const data = event.payload as {
+          app_id: string;
+          success: boolean;
+          error?: string;
+        };
+
+        setDownloadStates((prev) => ({
+          ...prev,
+          [data.app_id]: {
+            ...(prev[data.app_id] || {}),
+            isInstalling: false,
+            installProgress: data.success ? 100 : 0,
+            installStatus: data.success
+              ? "Installation complete!"
+              : "Installation failed",
             error: data.error,
           },
         }));
@@ -91,6 +141,7 @@ function App() {
       setDownloadStates((prev) => ({
         ...prev,
         [appId]: {
+          ...(prev[appId] || {}),
           isDownloading: true,
           progress: 0,
           status: "Initializing...",
@@ -107,9 +158,54 @@ function App() {
       setDownloadStates((prev) => ({
         ...prev,
         [appId]: {
+          ...(prev[appId] || {}),
           isDownloading: false,
           progress: 0,
           status: "Download failed",
+          error: errorMsg,
+        },
+      }));
+    }
+  };
+
+  const handleCancelDownload = async (appId: string) => {
+    try {
+      await invoke<string>("cancel_download", { appId });
+    } catch (error) {
+      console.error("Failed to cancel download:", error);
+    }
+  };
+
+  const handleInstall = async (appId: string, filePath: string) => {
+    try {
+      console.log(`Installing app: ${appId} from path: ${filePath}`);
+      setDownloadStates((prev) => ({
+        ...prev,
+        [appId]: {
+          ...(prev[appId] || {}),
+          isInstalling: true,
+          installProgress: 0,
+          installStatus: "Starting installation...",
+          error: undefined,
+        },
+      }));
+
+      const result = await invoke<string>("install_app", {
+        appId,
+        filePath,
+      });
+      console.log("Install result:", result);
+    } catch (error) {
+      console.error("Installation failed:", error);
+      const errorMsg =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      setDownloadStates((prev) => ({
+        ...prev,
+        [appId]: {
+          ...(prev[appId] || {}),
+          isInstalling: false,
+          installProgress: 0,
+          installStatus: "Installation failed",
           error: errorMsg,
         },
       }));
@@ -137,10 +233,14 @@ function App() {
       ) : (
         <div className="app-grid">
           {apps.map((app) => {
-            const downloadState = downloadStates[app.id] || {
+            const state = downloadStates[app.id] || {
               isDownloading: false,
+              isInstalling: false,
               progress: 0,
+              installProgress: 0,
               status: "",
+              installStatus: "",
+              isDownloaded: false,
             };
 
             return (
@@ -165,45 +265,107 @@ function App() {
                   </div>
                   <p className="app-author">by {app.author}</p>
 
-                  {downloadState.isDownloading && (
+                  {/* Download Progress Section */}
+                  {state.isDownloading && (
                     <div className="download-progress">
                       <div className="progress-bar">
                         <div
                           className="progress-fill"
-                          style={{ width: `${downloadState.progress}%` }}
+                          style={{ width: `${state.progress}%` }}
                         ></div>
                       </div>
-                      <p className="progress-text">{downloadState.status}</p>
+                      <p className="progress-text">{state.status}</p>
                     </div>
                   )}
 
-                  {downloadState.error && (
+                  {/* Install Progress Section */}
+                  {state.isInstalling && (
+                    <div className="install-progress">
+                      <div className="progress-bar">
+                        <div
+                          className="progress-fill install-fill"
+                          style={{ width: `${state.installProgress}%` }}
+                        ></div>
+                      </div>
+                      <p className="progress-text">{state.installStatus}</p>
+                    </div>
+                  )}
+
+                  {/* Error Message */}
+                  {state.error && (
                     <div className="download-error">
                       <span className="error-icon">⚠️</span>
-                      <p>{downloadState.error}</p>
+                      <p>{state.error}</p>
                     </div>
                   )}
 
-                  {!downloadState.isDownloading &&
-                    !downloadState.error &&
-                    downloadState.progress === 100 && (
+                  {/* Success Message */}
+                  {!state.isDownloading &&
+                    !state.error &&
+                    state.progress === 100 &&
+                    !state.isInstalling && (
                       <div className="download-success">
                         <span className="success-icon">✓</span>
-                        <p>{downloadState.status}</p>
+                        <p>{state.status}</p>
                       </div>
                     )}
 
-                  <button
-                    className="btn-download"
-                    onClick={() => handleDownload(app.id, app.downloadUrl)}
-                    disabled={downloadState.isDownloading}
-                  >
-                    {downloadState.isDownloading
-                      ? `Downloading... ${Math.round(downloadState.progress)}%`
-                      : downloadState.progress === 100
-                        ? "Downloaded"
-                        : "Download"}
-                  </button>
+                  {/* Install Success Message */}
+                  {!state.isInstalling &&
+                    state.installProgress === 100 &&
+                    !state.error && (
+                      <div className="install-success">
+                        <span className="success-icon">✓</span>
+                        <p>{state.installStatus}</p>
+                      </div>
+                    )}
+
+                  {/* Action Buttons */}
+                  <div className="button-group">
+                    {state.isDownloading ? (
+                      <>
+                        <button className="btn-download" disabled>
+                          {`Downloading... ${Math.round(state.progress)}%`}
+                        </button>
+                        <button
+                          className="btn-cancel"
+                          onClick={() => handleCancelDownload(app.id)}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : state.isDownloaded && !state.isInstalling ? (
+                      <>
+                        <button
+                          className="btn-install"
+                          onClick={() =>
+                            handleInstall(
+                              app.id,
+                              state.filePath || `~/Downloads/${app.id}.dmg`,
+                            )
+                          }
+                        >
+                          Install
+                        </button>
+                        <button
+                          className="btn-redownload"
+                          onClick={() =>
+                            handleDownload(app.id, app.downloadUrl)
+                          }
+                        >
+                          Re-download
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="btn-download"
+                        onClick={() => handleDownload(app.id, app.downloadUrl)}
+                        disabled={state.isInstalling}
+                      >
+                        {state.isInstalling ? "Installing..." : "Download"}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );

@@ -177,13 +177,22 @@ body {
   margin-bottom: 15px;
 }
 
+/* Button Styles */
+.button-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .btn-download {
+  flex: 1;
+  min-width: 100px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 10px 16px;
   border-radius: 8px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -204,8 +213,85 @@ body {
   cursor: not-allowed;
 }
 
+.btn-cancel {
+  flex: 1;
+  min-width: 80px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+.btn-cancel:hover {
+  box-shadow: 0 4px 16px rgba(244, 67, 54, 0.4);
+  transform: scale(1.02);
+}
+
+.btn-cancel:active {
+  transform: scale(0.98);
+}
+
+.btn-install {
+  flex: 1;
+  min-width: 100px;
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-install:hover {
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+  transform: scale(1.02);
+}
+
+.btn-install:active {
+  transform: scale(0.98);
+}
+
+.btn-redownload {
+  flex: 1;
+  min-width: 100px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.btn-redownload:hover {
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.4);
+  transform: scale(1.02);
+}
+
+.btn-redownload:active {
+  transform: scale(0.98);
+}
+
 /* Download Progress Styles */
 .download-progress {
+  margin-bottom: 12px;
+  padding: 10px 0;
+}
+
+.install-progress {
   margin-bottom: 12px;
   padding: 10px 0;
 }
@@ -226,11 +312,19 @@ body {
   border-radius: 3px;
 }
 
+.progress-fill.install-fill {
+  background: linear-gradient(90deg, #4caf50 0%, #2e7d32 100%);
+}
+
 .progress-text {
   font-size: 0.75rem;
   color: #667eea;
   font-weight: 600;
   margin: 0;
+}
+
+.install-progress .progress-text {
+  color: #4caf50;
 }
 
 /* Download Error Styles */
@@ -281,6 +375,25 @@ body {
   line-height: 1.3;
 }
 
+/* Install Success Styles */
+.install-success {
+  background-color: #e8f5e9;
+  border: 1px solid #66bb6a;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.install-success p {
+  font-size: 0.85rem;
+  color: #2e7d32;
+  margin: 0;
+  line-height: 1.3;
+}
+
 @media (prefers-color-scheme: dark) {
   .progress-bar {
     background-color: #333;
@@ -301,6 +414,15 @@ body {
   }
 
   .download-success p {
+    color: #81c784;
+  }
+
+  .install-success {
+    background-color: #2d5f3f;
+    border-color: #43a047;
+  }
+
+  .install-success p {
     color: #81c784;
   }
 }

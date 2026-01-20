@@ -7,6 +7,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::fetch_apps,
             commands::download_app,
+            commands::cancel_download,
+            commands::install_app,
             commands::check_updates,
             commands::search_apps,
         ])
