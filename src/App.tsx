@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import type { App } from "./types/app.types";
 import "./App.css";
 import { Button } from "./components/Buttons";
+import { ProgressBar } from "./components/ProgressBar";
 
 interface DownloadState {
   [appId: string]: {
@@ -277,28 +278,22 @@ function App() {
 
                   {/* Download Progress Section */}
                   {state.isDownloading && (
-                    <div className="download-progress">
-                      <div className="progress-bar">
-                        <div
-                          className="progress-fill"
-                          style={{ width: `${state.progress}%` }}
-                        ></div>
-                      </div>
-                      <p className="progress-text">{state.status}</p>
-                    </div>
+                    <ProgressBar
+                      progress={state.progress}
+                      status={state.status}
+                      variant="primary"
+                      showPercentage
+                    />
                   )}
 
                   {/* Install Progress Section */}
                   {state.isInstalling && (
-                    <div className="install-progress">
-                      <div className="progress-bar">
-                        <div
-                          className="progress-fill install-fill"
-                          style={{ width: `${state.installProgress}%` }}
-                        ></div>
-                      </div>
-                      <p className="progress-text">{state.installStatus}</p>
-                    </div>
+                    <ProgressBar
+                      progress={state.installProgress}
+                      status={state.installStatus}
+                      variant="success"
+                      showPercentage
+                    />
                   )}
 
                   {/* Error Message */}
