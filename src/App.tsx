@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { JSX, useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type { App } from "./types/app.types";
@@ -9,6 +9,7 @@ import { CategoriesPage } from "./pages/CategoriesPage";
 import { DiscoverPage } from "./pages/DiscoverPage";
 import { SearchResultsPage } from "./pages/SearchResultsPage";
 import { UpdatePage } from "./pages/UpdatePage";
+import { Download, Library, Telescope } from "lucide-react";
 
 type MenuKey = "discover" | "categories" | "update";
 
@@ -292,8 +293,8 @@ function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-50 text-black dark:bg-zinc-900 dark:text-white">
-      <aside className="hidden w-72 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 md:flex">
-        <div className="border-b border-zinc-200 px-6 py-5 dark:border-zinc-800">
+      <aside className="hidden w-72 flex-col border-r border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800 md:flex">
+        <div className=" px-6 py-5 dark:border-zinc-700">
           <p className="text-lg font-semibold uppercase tracking-[0.12em] text-zinc-100">
             Fossintosh
           </p>
@@ -301,7 +302,7 @@ function App() {
         </div>
 
         <div className="px-4 py-4">
-          <div className="relative mt-2">
+          <div className="relative">
             <svg
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
               fill="none"
@@ -321,7 +322,7 @@ function App() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search apps"
-              className="w-full rounded-xl border border-zinc-200 bg-white px-10 py-2 text-sm shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-900"
+              className="w-full rounded-full border border-zinc-200 bg-white px-10 py-2 text-sm shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-900"
             />
           </div>
         </div>
@@ -329,10 +330,10 @@ function App() {
         <nav className="flex-1 space-y-1 px-2 py-2">
           {(
             [
-              { key: "discover", label: "Discover", icon: "D" },
-              { key: "categories", label: "Categories", icon: "C" },
-              { key: "update", label: "Update", icon: "U" },
-            ] as Array<{ key: MenuKey; label: string; icon: string }>
+              { key: "discover", label: "Discover", icon: <Telescope /> },
+              { key: "categories", label: "Categories", icon: <Library /> },
+              { key: "update", label: "Update", icon: <Download /> },
+            ] as Array<{ key: MenuKey; label: string; icon: JSX.Element }>
           ).map((item) => {
             const isActive = activeMenu === item.key;
 
@@ -340,18 +341,18 @@ function App() {
               <button
                 key={item.key}
                 onClick={() => handleMenuSelect(item.key)}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition ${
+                className={`flex w-full items-center gap-2 rounded-xl px-1.5 py-1.5 text-sm font-semibold transition-all ${
                   isActive
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-100 dark:shadow-blue-900/50"
+                    ? "bg-blue-900 text-white shadow-blue-100 "
                     : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 }`}
               >
                 <span
                   aria-hidden
-                  className={`flex h-8 w-8 items-center justify-center rounded-lg text-base ${
+                  className={`flex h-10 w-10 items-center justify-center rounded-lg text-base ${
                     isActive
-                      ? "bg-white/10 text-white"
-                      : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
+                      ? " text-white"
+                      : "bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300"
                   }`}
                 >
                   {item.icon}
