@@ -22,6 +22,7 @@ interface AppCardProps {
   onDownload: (appId: string, downloadUrl: string) => void;
   onCancelDownload: (appId: string) => void;
   onInstall: (appId: string, filePath: string) => void;
+  onClick: () => void;
 }
 
 export function AppCard({
@@ -30,9 +31,13 @@ export function AppCard({
   onDownload,
   onCancelDownload,
   onInstall,
+  onClick,
 }: AppCardProps) {
   return (
-    <div className="p-8 rounded-lg bg-zinc-50 text-black min-h-screen dark:bg-zinc-800 dark:text-white shadow-md flex flex-col gap-4">
+    <div
+      onClick={onClick}
+      className="p-8 rounded-lg bg-zinc-50 text-black min-h-screen dark:bg-zinc-800 dark:text-white shadow-md flex flex-col gap-4 cursor-pointer hover:shadow-lg transition-shadow"
+    >
       <AppHeader app={app} />
 
       <div className="app-content">

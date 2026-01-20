@@ -21,6 +21,7 @@ interface AppGridProps {
   onDownload: (appId: string, downloadUrl: string) => void;
   onCancelDownload: (appId: string) => void;
   onInstall: (appId: string, filePath: string) => void;
+  onCardClick: (app: App) => void;
 }
 
 export function AppGrid({
@@ -29,6 +30,7 @@ export function AppGrid({
   onDownload,
   onCancelDownload,
   onInstall,
+  onCardClick,
 }: AppGridProps) {
   return (
     <div className="grid grid-flow-col grid-rows-2 gap-4 p-6">
@@ -51,6 +53,7 @@ export function AppGrid({
             onDownload={onDownload}
             onCancelDownload={onCancelDownload}
             onInstall={onInstall}
+            onClick={() => onCardClick(app)}
           />
         );
       })}

@@ -2,13 +2,18 @@
 
 /* Global Styles */
 body {
-  @apply bg-white;
+  @apply bg-white overflow-hidden;
 }
 
 @media (prefers-color-scheme: dark) {
   body {
     @apply bg-zinc-900;
   }
+}
+
+/* Page Transition Animations */
+.page-container {
+  @apply fixed inset-0 overflow-auto;
 }
 
 .app {

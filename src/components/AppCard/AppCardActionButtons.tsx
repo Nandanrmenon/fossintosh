@@ -23,6 +23,21 @@ export function ActionButtons({
   onCancelDownload,
   onInstall,
 }: ActionButtonsProps) {
+  const handleDownloadClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDownload(appId, downloadUrl);
+  };
+
+  const handleCancelClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onCancelDownload(appId);
+  };
+
+  const handleInstallClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onInstall(appId, state.filePath || `~/Downloads/${appId}.dmg`);
+  };
+
   if (state.isDownloading) {
     return (
       <div className="gap-2 mt-4 flex flex-wrap">
@@ -30,9 +45,7 @@ export function ActionButtons({
           <Button
             variant="secondary"
             className="w-full"
-            onClick={() =>
-              onInstall(appId, state.filePath || `~/Downloads/${appId}.dmg`)
-            }
+            onClick={handleInstallClick}
             disabled
           >
             {`Downloading... ${Math.round(state.progress)}%`}
@@ -40,7 +53,7 @@ export function ActionButtons({
           <Button
             variant="danger"
             className="w-full"
-            onClick={() => onCancelDownload(appId)}
+            onClick={handleCancelClick}
           >
             Cancel
           </Button>
@@ -55,16 +68,14 @@ export function ActionButtons({
         <div className="flex gap-2 w-full">
           <Button
             variant="success"
-            onClick={() =>
-              onInstall(appId, state.filePath || `~/Downloads/${appId}.dmg`)
-            }
+            onClick={handleInstallClick}
             disabled={state.isInstalling}
           >
             Install
           </Button>
           <Button
             variant="secondary"
-            onClick={() => onDownload(appId, downloadUrl)}
+            onClick={handleDownloadClick}
             disabled={state.isInstalling}
           >
             Re-download
@@ -79,7 +90,7 @@ export function ActionButtons({
       <Button
         variant="primary"
         className="w-full"
-        onClick={() => onDownload(appId, downloadUrl)}
+        onClick={handleDownloadClick}
         disabled={state.isInstalling}
       >
         {state.isInstalling ? "Installing..." : "Download"}

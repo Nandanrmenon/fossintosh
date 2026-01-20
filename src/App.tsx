@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import type { App } from "./types/app.types";
 import "./App.css";
 import { AppGrid } from "./components/AppGrid";
+import { AppDetail } from "./components/AppDetail";
 import Header from "./components/Home/Header";
 
 interface DownloadState {
@@ -25,11 +26,21 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [downloadStates, setDownloadStates] = useState<DownloadState>({});
+  const [selectedApp, setSelectedApp] = useState<App | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     loadApps();
     setupEventListeners();
   }, []);
+
+  const handleCardClick = (app: App) => {
+    setSelectedApp(app);
+  };
+
+  const handleBack = () => {
+    setSelectedApp(null);
+  };
 
   const setupEventListeners = async () => {
     try {
@@ -222,25 +233,70 @@ function App() {
     );
 
   return (
-    <div className="bg-zinc-50 min-h-screen dark:bg-zinc-900">
-      {/* <header className="app-header">
-        <h1 className="text-xl font-bold">Fossintosh</h1>
-      </header> */}
+    <div className="relative w-full h-screen overflow-hidden">
+      {/* Apps Grid Page */}
+      <div
+        className={`page-container ${
+          selectedApp ? "page-slide-exit-active" : ""
+        }`}
+        style={{
+          transform: selectedApp ? "translateX(-30%)" : "translateX(0)",
+          transition: "transform 0.3s ease-out",
+        }}
+      >
+        <div className="bg-zinc-50 min-h-screen dark:bg-zinc-900">
+          <Header title="Fossintosh" />
 
-      <Header title="Fossintosh" />
+          {error && <div className="error-message">{error}</div>}
 
-      {error && <div className="error-message">{error}</div>}
+          {apps.length === 0 ? (
+            <div className="no-apps">No apps found</div>
+          ) : (
+            <AppGrid
+              apps={apps}
+              downloadStates={downloadStates}
+              onDownload={handleDownload}
+              onCancelDownload={handleCancelDownload}
+              onInstall={handleInstall}
+              onCardClick={handleCardClick}
+            />
+          )}
+        </div>
+      </div>
 
-      {apps.length === 0 ? (
-        <div className="no-apps">No apps found</div>
-      ) : (
-        <AppGrid
-          apps={apps}
-          downloadStates={downloadStates}
-          onDownload={handleDownload}
-          onCancelDownload={handleCancelDownload}
-          onInstall={handleInstall}
-        />
+      {/* App Detail Page */}
+      {selectedApp && (
+        <div
+          className="page-container"
+          style={{
+            transform: "translateX(0)",
+            transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            zIndex: 10,
+          }}
+        >
+          {(() => {
+            const state = downloadStates[selectedApp.id] || {
+              isDownloading: false,
+              isInstalling: false,
+              progress: 0,
+              installProgress: 0,
+              status: "",
+              installStatus: "",
+              isDownloaded: false,
+            };
+
+            return (
+              <AppDetail
+                app={selectedApp}
+                downloadState={state}
+                onDownload={handleDownload}
+                onCancelDownload={handleCancelDownload}
+                onInstall={handleInstall}
+                onBack={handleBack}
+              />
+            );
+          })()}
+        </div>
       )}
     </div>
   );
