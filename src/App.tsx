@@ -293,7 +293,7 @@ function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-50 text-black dark:bg-zinc-900 dark:text-white">
-      <aside className="hidden w-72 flex-col border-r border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800 md:flex">
+      <aside className="hidden w-72 flex-col bg-white dark:bg-zinc-950/20 md:flex">
         <div className=" px-6 py-5 dark:border-zinc-700">
           <p className="text-lg font-semibold uppercase tracking-[0.12em] text-zinc-100">
             Fossintosh
