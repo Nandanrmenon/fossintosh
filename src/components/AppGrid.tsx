@@ -1,19 +1,6 @@
 import { App } from "../types/app.types";
+import { DownloadState } from "../types/download.types";
 import { AppCard } from "./AppCard/AppCard";
-
-interface DownloadState {
-  [appId: string]: {
-    isDownloading: boolean;
-    isInstalling: boolean;
-    progress: number;
-    installProgress: number;
-    status: string;
-    installStatus: string;
-    error?: string;
-    filePath?: string;
-    isDownloaded: boolean;
-  };
-}
 
 interface AppGridProps {
   apps: App[];
@@ -33,7 +20,7 @@ export function AppGrid({
   onCardClick,
 }: AppGridProps) {
   return (
-    <div className="grid grid-flow-col grid-rows-2 gap-4 p-6">
+    <div className="grid gap-5 px-1 pb-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {apps.map((app) => {
         const state = downloadStates[app.id] || {
           isDownloading: false,

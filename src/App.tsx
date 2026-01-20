@@ -1,25 +1,16 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type { App } from "./types/app.types";
+import { DownloadState } from "./types/download.types";
 import "./App.css";
-import { AppGrid } from "./components/AppGrid";
 import { AppDetail } from "./components/AppDetail";
+import { CategoriesPage } from "./pages/CategoriesPage";
+import { DiscoverPage } from "./pages/DiscoverPage";
+import { UpdatePage } from "./pages/UpdatePage";
 import Header from "./components/Home/Header";
 
-interface DownloadState {
-  [appId: string]: {
-    isDownloading: boolean;
-    isInstalling: boolean;
-    progress: number;
-    installProgress: number;
-    status: string;
-    installStatus: string;
-    error?: string;
-    filePath?: string;
-    isDownloaded: boolean;
-  };
-}
+type MenuKey = "discover" | "categories" | "update";
 
 function App() {
   const [apps, setApps] = useState<App[]>([]);
@@ -27,7 +18,8 @@ function App() {
   const [error, setError] = useState<string>("");
   const [downloadStates, setDownloadStates] = useState<DownloadState>({});
   const [selectedApp, setSelectedApp] = useState<App | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<MenuKey>("discover");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     loadApps();
@@ -39,6 +31,11 @@ function App() {
   };
 
   const handleBack = () => {
+    setSelectedApp(null);
+  };
+
+  const handleMenuSelect = (menu: MenuKey) => {
+    setActiveMenu(menu);
     setSelectedApp(null);
   };
 
@@ -225,79 +222,228 @@ function App() {
     }
   };
 
+  const discoverApps = useMemo(() => {
+    if (!searchTerm.trim()) return apps;
+
+    const query = searchTerm.toLowerCase();
+    return apps.filter(
+      (app) =>
+        app.name.toLowerCase().includes(query) ||
+        app.description.toLowerCase().includes(query) ||
+        app.category.toLowerCase().includes(query),
+    );
+  }, [apps, searchTerm]);
+
+  const updateApps = useMemo(() => {
+    const updatesOnly = apps.filter((app) => Boolean(app.hasUpdate));
+
+    if (!searchTerm.trim()) return updatesOnly;
+
+    const query = searchTerm.toLowerCase();
+    return updatesOnly.filter(
+      (app) =>
+        app.name.toLowerCase().includes(query) ||
+        app.description.toLowerCase().includes(query) ||
+        app.category.toLowerCase().includes(query),
+    );
+  }, [apps, searchTerm]);
+
+  const categories = useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    apps.forEach((app) => {
+      counts[app.category] = (counts[app.category] || 0) + 1;
+    });
+
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }, [apps]);
+
+  const updateCount = useMemo(
+    () => apps.filter((app) => Boolean(app.hasUpdate)).length,
+    [apps],
+  );
+
+  const handleCategorySelect = (category: string) => {
+    setSearchTerm(category);
+    setActiveMenu("discover");
+    setSelectedApp(null);
+  };
+
   if (loading)
     return (
-      <div className="app">
+      <div className="flex h-screen items-center justify-center bg-zinc-50 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
         <div className="loading">Loading apps...</div>
       </div>
     );
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      {/* Apps Grid Page */}
-      <div
-        className={`page-container ${
-          selectedApp ? "page-slide-exit-active" : ""
-        }`}
-        style={{
-          transform: selectedApp ? "translateX(-30%)" : "translateX(0)",
-          transition: "transform 0.3s ease-out",
-        }}
-      >
-        <div className="bg-zinc-50 min-h-screen dark:bg-zinc-900">
-          <Header title="Fossintosh" />
-
-          {error && <div className="error-message">{error}</div>}
-
-          {apps.length === 0 ? (
-            <div className="no-apps">No apps found</div>
-          ) : (
-            <AppGrid
-              apps={apps}
-              downloadStates={downloadStates}
-              onDownload={handleDownload}
-              onCancelDownload={handleCancelDownload}
-              onInstall={handleInstall}
-              onCardClick={handleCardClick}
-            />
-          )}
+    <div className="flex h-screen overflow-hidden bg-zinc-50 text-black dark:bg-zinc-900 dark:text-white">
+      <aside className="hidden w-72 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 md:flex">
+        <div className="border-b border-zinc-200 px-6 py-5 dark:border-zinc-800">
+          <p className="text-lg font-semibold uppercase tracking-[0.12em] text-zinc-100">
+            Fossintosh
+          </p>
+          <p className="text-sm text-zinc-500">Find and manage apps</p>
         </div>
-      </div>
 
-      {/* App Detail Page */}
-      {selectedApp && (
-        <div
-          className="page-container"
-          style={{
-            transform: "translateX(0)",
-            transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            zIndex: 10,
-          }}
-        >
-          {(() => {
-            const state = downloadStates[selectedApp.id] || {
-              isDownloading: false,
-              isInstalling: false,
-              progress: 0,
-              installProgress: 0,
-              status: "",
-              installStatus: "",
-              isDownloaded: false,
-            };
+        <div className="px-4 py-4">
+          <div className="relative mt-2">
+            <svg
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z"
+              />
+            </svg>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search apps"
+              className="w-full rounded-xl border border-zinc-200 bg-white px-10 py-2 text-sm shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-900"
+            />
+          </div>
+        </div>
+
+        <nav className="flex-1 space-y-1 px-2 py-2">
+          {(
+            [
+              { key: "discover", label: "Discover", icon: "D" },
+              { key: "categories", label: "Categories", icon: "C" },
+              { key: "update", label: "Update", icon: "U" },
+            ] as Array<{ key: MenuKey; label: string; icon: string }>
+          ).map((item) => {
+            const isActive = activeMenu === item.key;
 
             return (
-              <AppDetail
-                app={selectedApp}
-                downloadState={state}
-                onDownload={handleDownload}
-                onCancelDownload={handleCancelDownload}
-                onInstall={handleInstall}
-                onBack={handleBack}
-              />
+              <button
+                key={item.key}
+                onClick={() => handleMenuSelect(item.key)}
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition ${
+                  isActive
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-100 dark:shadow-blue-900/50"
+                    : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                }`}
+              >
+                <span
+                  aria-hidden
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg text-base ${
+                    isActive
+                      ? "bg-white/10 text-white"
+                      : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
+                  }`}
+                >
+                  {item.icon}
+                </span>
+                <span>{item.label}</span>
+                {item.key === "update" && (
+                  <span
+                    className={`ml-auto rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      updateCount > 0
+                        ? isActive
+                          ? "bg-white/20 text-white"
+                          : "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-100"
+                        : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300"
+                    }`}
+                  >
+                    {updateCount}
+                  </span>
+                )}
+              </button>
             );
-          })()}
+          })}
+        </nav>
+      </aside>
+
+      <main className="relative flex-1 overflow-hidden">
+        <div className="flex h-full flex-col">
+          {/* <Header
+            title={
+              activeMenu === "categories"
+                ? "Categories"
+                : activeMenu === "update"
+                  ? "Updates"
+                  : "Discover"
+            }
+          /> */}
+
+          <div className="relative flex-1">
+            <div
+              className={`h-full overflow-y-auto transition duration-300 ${
+                selectedApp ? "md:pr-3" : ""
+              }`}
+            >
+              <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6">
+                {error && <div className="error-message">{error}</div>}
+
+                {activeMenu === "categories" ? (
+                  <CategoriesPage
+                    categories={categories}
+                    onSelect={handleCategorySelect}
+                  />
+                ) : activeMenu === "update" ? (
+                  <UpdatePage
+                    apps={updateApps}
+                    downloadStates={downloadStates}
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    onDownload={handleDownload}
+                    onCancelDownload={handleCancelDownload}
+                    onInstall={handleInstall}
+                    onCardClick={handleCardClick}
+                  />
+                ) : (
+                  <DiscoverPage
+                    apps={discoverApps}
+                    downloadStates={downloadStates}
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    onDownload={handleDownload}
+                    onCancelDownload={handleCancelDownload}
+                    onInstall={handleInstall}
+                    onCardClick={handleCardClick}
+                  />
+                )}
+              </div>
+            </div>
+
+            {selectedApp && (
+              <div className="absolute inset-0 z-20 overflow-y-auto rounded-t-3xl bg-white shadow-2xl ring-1 ring-zinc-200 transition duration-300 ease-out dark:bg-zinc-900 dark:ring-zinc-800 md:rounded-none">
+                {(() => {
+                  const state = downloadStates[selectedApp.id] || {
+                    isDownloading: false,
+                    isInstalling: false,
+                    progress: 0,
+                    installProgress: 0,
+                    status: "",
+                    installStatus: "",
+                    isDownloaded: false,
+                  };
+
+                  return (
+                    <AppDetail
+                      app={selectedApp}
+                      downloadState={state}
+                      onDownload={handleDownload}
+                      onCancelDownload={handleCancelDownload}
+                      onInstall={handleInstall}
+                      onBack={handleBack}
+                    />
+                  );
+                })()}
+              </div>
+            )}
+          </div>
         </div>
-      )}
+      </main>
     </div>
   );
 }
