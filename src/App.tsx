@@ -3,8 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type { App } from "./types/app.types";
 import "./App.css";
-import { Button } from "./components/Buttons";
-import { ProgressBar } from "./components/ProgressBar";
+import { AppGrid } from "./components/AppGrid";
 
 interface DownloadState {
   [appId: string]: {
@@ -224,7 +223,7 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="text-xl font-bold">FOSSintosh</h1>
+        <h1 className="text-xl font-bold">Fossintosh</h1>
       </header>
 
       {error && <div className="error-message">{error}</div>}
@@ -232,164 +231,13 @@ function App() {
       {apps.length === 0 ? (
         <div className="no-apps">No apps found</div>
       ) : (
-        <div className="grid grid-flow-col grid-rows-2 gap-4 p-6">
-          {apps.map((app) => {
-            const state = downloadStates[app.id] || {
-              isDownloading: false,
-              isInstalling: false,
-              progress: 0,
-              installProgress: 0,
-              status: "",
-              installStatus: "",
-              isDownloaded: false,
-            };
-            return (
-              <div
-                key={app.id}
-                className="p-8 border border-zinc-200 rounded-lg inset-shadow-sm bg-white "
-              >
-                <div className="mb-4 flex gap-4 items-center">
-                  <img
-                    src={app.icon}
-                    alt={app.name}
-                    className="w-16 h-16 object-contain"
-                    draggable={false}
-                    onError={(e) => {
-                      e.currentTarget.src =
-                        "https://via.placeholder.com/64?text=" +
-                        app.name.substring(0, 2);
-                    }}
-                  />
-                  <div>
-                    <p className="text-2xl font-semibold">{app.name}</p>
-                    <p className="text-sm">{app.author}</p>
-                  </div>
-                </div>
-                <div className="app-content">
-                  <p className="text-md text-zinc-500">{app.description}</p>
-                  <div className="flex flex-wrap gap-2 my-2 items-center">
-                    <span className="text-sm bg-purple-300 px-3 py-1 rounded-full text-purple-800 font-medium">
-                      {app.category}
-                    </span>
-                    <span className="text-sm bg-blue-300 px-3 py-1 rounded-full text-blue-800 font-medium">
-                      v{app.version}
-                    </span>
-                  </div>
-
-                  {/* Download Progress Section */}
-                  {state.isDownloading && (
-                    <ProgressBar
-                      progress={state.progress}
-                      status={state.status}
-                      variant="primary"
-                      showPercentage
-                    />
-                  )}
-
-                  {/* Install Progress Section */}
-                  {state.isInstalling && (
-                    <ProgressBar
-                      progress={state.installProgress}
-                      status={state.installStatus}
-                      variant="success"
-                      showPercentage
-                    />
-                  )}
-
-                  {/* Error Message */}
-                  {state.error && (
-                    <div className="download-error">
-                      <span className="error-icon">⚠️</span>
-                      <p>{state.error}</p>
-                    </div>
-                  )}
-
-                  {/* Success Message */}
-                  {!state.isDownloading &&
-                    !state.error &&
-                    state.progress === 100 &&
-                    !state.isInstalling && (
-                      <div className="download-success">
-                        <span className="success-icon">✓</span>
-                        <p>{state.status}</p>
-                      </div>
-                    )}
-
-                  {/* Install Success Message */}
-                  {!state.isInstalling &&
-                    state.installProgress === 100 &&
-                    !state.error && (
-                      <div className="install-success">
-                        <span className="success-icon">✓</span>
-                        <p>{state.installStatus}</p>
-                      </div>
-                    )}
-
-                  {/* Action Buttons */}
-                  <div className="gap-2 mt-4 flex flex-wrap">
-                    {state.isDownloading ? (
-                      <div className="flex gap-2 w-full">
-                        <Button
-                          variant="secondary"
-                          className="w-full"
-                          onClick={() =>
-                            handleInstall(
-                              app.id,
-                              state.filePath || `~/Downloads/${app.id}.dmg`,
-                            )
-                          }
-                          disabled
-                        >
-                          {`Downloading... ${Math.round(state.progress)}%`}
-                        </Button>
-                        <Button
-                          variant="danger"
-                          className="w-full"
-                          onClick={() => handleCancelDownload(app.id)}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    ) : state.isDownloaded && !state.isInstalling ? (
-                      <div className="flex gap-2 w-full">
-                        <Button
-                          variant="success"
-                          onClick={() =>
-                            handleInstall(
-                              app.id,
-                              state.filePath || `~/Downloads/${app.id}.dmg`,
-                            )
-                          }
-                          disabled={state.isInstalling}
-                        >
-                          Install
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          onClick={() =>
-                            handleDownload(app.id, app.downloadUrl)
-                          }
-                          disabled={state.isInstalling}
-                        >
-                          Re-download
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        variant="primary"
-                        className="w-full"
-                        onClick={() => handleDownload(app.id, app.downloadUrl)}
-                        disabled={state.isInstalling}
-                      >
-                        {state.isInstalling ? "Installing..." : "Download"}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <AppGrid
+          apps={apps}
+          downloadStates={downloadStates}
+          onDownload={handleDownload}
+          onCancelDownload={handleCancelDownload}
+          onInstall={handleInstall}
+        />
       )}
     </div>
   );
