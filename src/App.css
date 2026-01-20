@@ -1,0 +1,257 @@
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color: #1a1a1a;
+  background-color: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f5f5f7;
+}
+
+.app {
+  width: 100%;
+  min-height: 100vh;
+  padding: 0;
+  background-color: #f5f5f7;
+}
+
+.app-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 40px 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.app-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 1rem;
+  opacity: 0.95;
+  font-weight: 300;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.2rem;
+  color: #667eea;
+}
+
+.error-message {
+  background-color: #fee;
+  color: #c00;
+  padding: 15px 20px;
+  margin: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #c00;
+}
+
+.no-apps {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  font-size: 1.2rem;
+  color: #999;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  padding: 40px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.app-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  border: 1px solid #e8e8e8;
+}
+
+.app-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  border-color: #667eea;
+}
+
+.app-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 15px;
+}
+
+.app-icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.app-description {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 12px;
+  flex-grow: 1;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.app-meta {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.app-category {
+  display: inline-block;
+  background-color: #f0f0f5;
+  color: #667eea;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.app-version {
+  display: inline-block;
+  background-color: #f0f0f5;
+  color: #666;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.app-author {
+  font-size: 0.85rem;
+  color: #999;
+  margin-bottom: 15px;
+}
+
+.btn-download {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-download:hover {
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+  transform: scale(1.02);
+}
+
+.btn-download:active {
+  transform: scale(0.98);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #f0f0f0;
+    background-color: #1a1a1a;
+  }
+
+  body {
+    background-color: #0f0f0f;
+  }
+
+  .app {
+    background-color: #0f0f0f;
+  }
+
+  .app-card {
+    background: #1a1a1a;
+    border-color: #333;
+  }
+
+  .app-card:hover {
+    border-color: #667eea;
+  }
+
+  .app-card h3 {
+    color: #f0f0f0;
+  }
+
+  .app-description {
+    color: #aaa;
+  }
+
+  .app-category,
+  .app-version {
+    background-color: #2a2a2a;
+    color: #aaa;
+  }
+
+  .app-category {
+    color: #9db5ff;
+  }
+
+  .app-author {
+    color: #777;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header h1 {
+    font-size: 2rem;
+  }
+
+  .app-grid {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+}
