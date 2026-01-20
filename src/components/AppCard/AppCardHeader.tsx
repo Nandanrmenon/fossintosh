@@ -10,7 +10,7 @@ export function AppHeader({ app }: AppHeaderProps) {
       <img
         src={app.icon}
         alt={app.name}
-        className="w-12 h-12 object-contain"
+        className="w-12 h-12 object-contain rounded-lg"
         draggable={false}
         onError={(e) => {
           e.currentTarget.src =
