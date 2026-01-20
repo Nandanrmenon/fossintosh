@@ -1,8 +1,9 @@
 import { App } from "../types/app.types";
-import { ProgressBar } from "./ProgressBar";
-import { ErrorMessage } from "./ErrorMessage";
-import { SuccessMessage } from "./SuccessMessage";
-import { ActionButtons } from "./AppCard/AppCardActionButtons";
+import { ProgressBar } from "../components/ProgressBar";
+import { ErrorMessage } from "../components/ErrorMessage";
+import { SuccessMessage } from "../components/SuccessMessage";
+import { ActionButtons } from "../components/AppCard/AppCardActionButtons";
+import { ChevronLeft } from "lucide-react";
 
 interface AppDetailProps {
   app: App;
@@ -34,112 +35,98 @@ export function AppDetail({
   return (
     <div className="flex flex-col h-full bg-white dark:bg-zinc-900 text-black dark:text-white">
       {/* Header with Back Button */}
-      <div className="flex-shrink-0 sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 z-10">
-        <div className="max-w-6xl mx-auto px-6 py-4">
+      <div className="flex justify-between  bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 z-10">
+        <div className="px-6 py-4">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-all active:scale-95 active:opacity-70"
+            className="flex gap-1 dark:bg-zinc-800 p-2 rounded-full transition-all active:scale-95 active:opacity-70"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Back
+            <ChevronLeft />
+            <p className="pr-2">Back</p>
           </button>
         </div>
+
+        <div className="px-6 py-4">
+          {state.isDownloading && (
+            <ProgressBar
+              progress={state.progress}
+              status={state.status}
+              variant="primary"
+              showPercentage
+            />
+          )}
+
+          {state.isInstalling && (
+            <ProgressBar
+              progress={state.installProgress}
+              status={state.installStatus}
+              variant="success"
+              showPercentage
+            />
+          )}
+        </div>
       </div>
+      {state.error && <ErrorMessage message={state.error} />}
+      {!state.isDownloading &&
+        !state.error &&
+        state.progress === 100 &&
+        !state.isInstalling && <SuccessMessage message={state.status} />}
+
+      {!state.isInstalling && state.installProgress === 100 && !state.error && (
+        <SuccessMessage message={state.installStatus} />
+      )}
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto pb-24">
         <div className="max-w-6xl mx-auto px-6 py-8">
           {/* App Header */}
-          <div className="flex items-start gap-6 mb-8">
-            <img
-              src={app.icon}
-              alt={app.name}
-              className="w-32 h-32 rounded-2xl shadow-lg object-contain"
-            />
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold mb-2">{app.name}</h1>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-4">
-                {app.description}
-              </p>
-              <div className="flex flex-wrap gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-zinc-500 dark:text-zinc-400">
-                    Version:
-                  </span>
-                  <span className="font-semibold">{app.version}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-zinc-500 dark:text-zinc-400">
-                    Category:
-                  </span>
-                  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full font-medium">
-                    {app.category}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-zinc-500 dark:text-zinc-400">
-                    License:
-                  </span>
-                  <span className="font-semibold">{app.license}</span>
-                </div>
+          <div className="flex justify-between items-start flex-wrap mb-8">
+            {/* AppName */}
+            <div className="flex items-center gap-6 mb-8">
+              <img
+                src={app.icon}
+                alt={app.name}
+                className="w-32 h-32 rounded-2xl shadow-lg object-contain"
+              />
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold mb-2">{app.name}</h1>
+                <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-4">
+                  {app.description}
+                </p>
               </div>
             </div>
-          </div>
 
-          {/* Download/Install Progress */}
-          <div className="mb-8">
-            {state.isDownloading && (
-              <ProgressBar
-                progress={state.progress}
-                status={state.status}
-                variant="primary"
-                showPercentage
+            {/* Download/Install Progress */}
+
+            {/* Action Buttons */}
+            <div className="mb-8">
+              <ActionButtons
+                appId={app.id}
+                downloadUrl={app.downloadUrl}
+                state={state}
+                onDownload={onDownload}
+                onCancelDownload={onCancelDownload}
+                onInstall={onInstall}
               />
-            )}
-
-            {state.isInstalling && (
-              <ProgressBar
-                progress={state.installProgress}
-                status={state.installStatus}
-                variant="success"
-                showPercentage
-              />
-            )}
-
-            {state.error && <ErrorMessage message={state.error} />}
-
-            {!state.isDownloading &&
-              !state.error &&
-              state.progress === 100 &&
-              !state.isInstalling && <SuccessMessage message={state.status} />}
-
-            {!state.isInstalling &&
-              state.installProgress === 100 &&
-              !state.error && <SuccessMessage message={state.installStatus} />}
+            </div>
           </div>
-
-          {/* Action Buttons */}
-          <div className="mb-8">
-            <ActionButtons
-              appId={app.id}
-              downloadUrl={app.downloadUrl}
-              state={state}
-              onDownload={onDownload}
-              onCancelDownload={onCancelDownload}
-              onInstall={onInstall}
-            />
+          <div className="flex flex-wrap gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-500 dark:text-zinc-400">Version:</span>
+              <span className="font-semibold">{app.version}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Category:
+              </span>
+              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full font-medium">
+                {app.category}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-500 dark:text-zinc-400">License:</span>
+              <span className="font-semibold">{app.license}</span>
+            </div>
           </div>
 
           {/* Screenshots */}

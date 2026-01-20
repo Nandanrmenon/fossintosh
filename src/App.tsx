@@ -4,7 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import type { App } from "./types/app.types";
 import { DownloadState } from "./types/download.types";
 import "./App.css";
-import { AppDetail } from "./components/AppDetail";
+import { AppDetail } from "./pages/AppDetail";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { DiscoverPage } from "./pages/DiscoverPage";
 import { SearchResultsPage } from "./pages/SearchResultsPage";
@@ -201,8 +201,30 @@ function App() {
   const handleCancelDownload = async (appId: string) => {
     try {
       await invoke<string>("cancel_download", { appId });
+
+      // Show feedback toast and reset download state
+      setDownloadStates((prev) => ({
+        ...prev,
+        [appId]: {
+          ...(prev[appId] || {}),
+          isDownloading: false,
+          progress: 0,
+          status: "Download canceled",
+          error: "Download canceled",
+        },
+      }));
     } catch (error) {
       console.error("Failed to cancel download:", error);
+      const errorMsg = error instanceof Error ? error.message : "Cancel failed";
+      setDownloadStates((prev) => ({
+        ...prev,
+        [appId]: {
+          ...(prev[appId] || {}),
+          isDownloading: false,
+          status: errorMsg,
+          error: errorMsg,
+        },
+      }));
     }
   };
 

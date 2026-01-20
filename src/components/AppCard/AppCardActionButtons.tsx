@@ -42,19 +42,15 @@ export function ActionButtons({
     return (
       <div className="gap-2 mt-4 flex flex-wrap">
         <div className="flex gap-2 w-full">
-          <Button
+          {/* <Button
             variant="secondary"
             className="w-full"
             onClick={handleInstallClick}
             disabled
           >
             {`Downloading... ${Math.round(state.progress)}%`}
-          </Button>
-          <Button
-            variant="danger"
-            className="w-full"
-            onClick={handleCancelClick}
-          >
+          </Button> */}
+          <Button variant="danger" className="" onClick={handleCancelClick}>
             Cancel
           </Button>
         </div>
@@ -88,8 +84,8 @@ export function ActionButtons({
   return (
     <div className="gap-2 mt-4 flex flex-wrap">
       <Button
-        variant="primary"
-        className="w-full"
+        variant="secondary"
+        className=""
         onClick={handleDownloadClick}
         disabled={state.isInstalling}
       >

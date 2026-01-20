@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 interface ProgressBarProps {
   progress: number;
   status?: string;
@@ -11,29 +13,27 @@ export function ProgressBar({
   variant = "primary",
   showPercentage = false,
 }: ProgressBarProps) {
-  const variantClasses = {
-    primary: "bg-blue-500",
-    success: "bg-green-500",
-    danger: "bg-red-500",
-    warning: "bg-yellow-500",
+  const clamped = Math.min(100, Math.max(0, progress));
+  const variantStrokes: Record<
+    NonNullable<ProgressBarProps["variant"]>,
+    string
+  > = {
+    primary: "text-blue-500",
+    success: "text-green-500",
+    danger: "text-red-500",
+    warning: "text-yellow-500",
   };
 
+  const ringStyle: CSSProperties = {
+    "--value": clamped,
+  } as CSSProperties;
+
   return (
-    <div className="w-full space-y-2">
-      <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-        <div
-          className={`h-full transition-all duration-300 ease-out ${variantClasses[variant]}`}
-          style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
-        />
-      </div>
-      {(status || showPercentage) && (
-        <div className="flex justify-between items-center text-sm text-gray-600">
-          {status && <span>{status}</span>}
-          {showPercentage && (
-            <span className="font-medium">{Math.round(progress)}%</span>
-          )}
-        </div>
-      )}
-    </div>
+    <div
+      className={`radial-progress`}
+      style={ringStyle}
+      aria-valuenow={clamped}
+      role="progressbar"
+    ></div>
   );
 }
