@@ -416,7 +416,7 @@ function App() {
             </div>
 
             {selectedApp && (
-              <div className="absolute inset-0 z-20 overflow-y-auto rounded-t-3xl bg-white shadow-2xl ring-1 ring-zinc-200 transition duration-300 ease-out dark:bg-zinc-900 dark:ring-zinc-800 md:rounded-none">
+              <div className="fixed inset-0 bottom-0 z-20 flex flex-col max-h-[90vh] rounded-t-3xl bg-white shadow-2xl ring-1 ring-zinc-200 transition duration-300 ease-out dark:bg-zinc-900 dark:ring-zinc-800 md:absolute md:max-h-none md:rounded-none">
                 {(() => {
                   const state = downloadStates[selectedApp.id] || {
                     isDownloading: false,
