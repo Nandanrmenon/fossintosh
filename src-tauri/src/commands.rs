@@ -357,7 +357,8 @@ async fn install_dmg(
                 let start = line.find("<string>")?;
                 let end = line.find("</string>")?;
                 if start < end {
-                    return Some(line[start + 8..end].to_string());
+                    let path = line[start + 8..end].to_string();
+                    return Some(path.trim().to_string());
                 }
             }
             None
@@ -370,13 +371,18 @@ async fn install_dmg(
                 .and_then(|line| {
                     if let Some(start) = line.find("/Volumes") {
                         if let Some(end) = line[start..].find("</string>") {
-                            return Some(line[start..start + end].to_string());
+                            return Some(line[start..start + end].trim().to_string());
                         }
                         // Also try without closing tag
                         if let Some(end) = line[start..].find('\n') {
                             return Some(line[start..start + end].trim().to_string());
                         }
-                        return Some(line[start..].trim_end_matches("</string>").to_string());
+                        return Some(
+                            line[start..]
+                                .trim_end_matches("</string>")
+                                .trim()
+                                .to_string(),
+                        );
                     }
                     None
                 })
@@ -386,12 +392,14 @@ async fn install_dmg(
             output_str
                 .lines()
                 .last()
-                .and_then(|line| line.split('\t').nth(2).map(String::from))
+                .and_then(|line| line.split('\t').nth(2).map(|s| s.trim().to_string()))
         })
         .ok_or_else(|| {
             eprintln!("Failed to extract mount point from output");
             "Failed to determine mount point".to_string()
         })?;
+
+    eprintln!("Extracted mount point: {:?}", mount_point);
 
     let _ = window.emit(
         "install_progress",
@@ -454,15 +462,43 @@ async fn install_dmg(
         },
     );
 
-    // Unmount the DMG
+    // Unmount the DMG - use force to eject even if files are in use
+    eprintln!("Attempting to unmount: {:?}", mount_point);
+
     let unmount_output = Command::new("hdiutil")
-        .args(&["unmount", &mount_point])
+        .arg("eject")
+        .arg("-force")
+        .arg(&mount_point)
         .output()
         .map_err(|e| format!("Failed to unmount DMG: {}", e))?;
 
     if !unmount_output.status.success() {
-        // Non-fatal error, continue
-        println!("Warning: Failed to unmount DMG");
+        let stderr = String::from_utf8_lossy(&unmount_output.stderr);
+        let stdout = String::from_utf8_lossy(&unmount_output.stdout);
+        eprintln!("Warning: Failed to force-eject DMG");
+        eprintln!("Eject stderr: {}", stderr);
+        eprintln!("Eject stdout: {}", stdout);
+
+        // Try unmount with -force as fallback
+        let unmount_fallback = Command::new("hdiutil")
+            .arg("unmount")
+            .arg("-force")
+            .arg(&mount_point)
+            .output()
+            .map_err(|e| format!("Failed to unmount DMG (fallback): {}", e))?;
+
+        if !unmount_fallback.status.success() {
+            let stderr = String::from_utf8_lossy(&unmount_fallback.stderr);
+            eprintln!(
+                "Warning: Both force-eject and force-unmount failed: {}",
+                stderr
+            );
+            // Non-fatal: installation succeeded, just couldn't unmount
+        } else {
+            eprintln!("Successfully unmounted DMG using force-unmount fallback");
+        }
+    } else {
+        eprintln!("Successfully unmounted DMG using force-eject");
     }
 
     let _ = window.emit(
