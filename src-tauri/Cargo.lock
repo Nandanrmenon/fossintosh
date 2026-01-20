@@ -987,6 +987,7 @@ dependencies = [
 name = "fossintosh"
 version = "0.1.0"
 dependencies = [
+ "futures-util",
  "reqwest 0.11.27",
  "serde",
  "serde_json",
@@ -3070,10 +3071,12 @@ dependencies = [
  "system-configuration",
  "tokio",
  "tokio-native-tls",
+ "tokio-util",
  "tower-service",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "wasm-streams",
  "web-sys",
  "winreg 0.50.0",
 ]

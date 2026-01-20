@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::io::Write;
 use std::path::PathBuf;
+use tauri::Emitter;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct App {
@@ -22,6 +24,23 @@ pub struct App {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "hasUpdate")]
     pub has_update: Option<bool>,
+}
+
+#[derive(Debug, Serialize, Clone)]
+pub struct DownloadProgress {
+    pub app_id: String,
+    pub progress: f64,
+    pub downloaded: u64,
+    pub total: u64,
+    pub status: String,
+}
+
+#[derive(Debug, Serialize, Clone)]
+pub struct DownloadComplete {
+    pub app_id: String,
+    pub file_path: String,
+    pub success: bool,
+    pub error: Option<String>,
 }
 
 fn get_apps_file_path() -> PathBuf {
@@ -62,11 +81,118 @@ pub async fn fetch_apps() -> Result<Vec<App>, String> {
 
 // Command to download an app
 #[tauri::command]
-pub async fn download_app(app_id: String, _download_url: String) -> Result<String, String> {
-    // TODO: Implement download logic
-    // Use reqwest crate for HTTP downloads
-    // Show progress via events
-    Ok(format!("Downloaded app: {}", app_id))
+pub async fn download_app(
+    app_id: String,
+    download_url: String,
+    window: tauri::Window,
+) -> Result<String, String> {
+    let downloads_dir = get_downloads_directory()
+        .map_err(|e| format!("Failed to get downloads directory: {}", e))?;
+
+    // Create file name from app_id
+    let file_name = format!("{}.dmg", app_id);
+    let file_path = downloads_dir.join(&file_name);
+
+    // Emit start event
+    let _ = window.emit(
+        "download_progress",
+        DownloadProgress {
+            app_id: app_id.clone(),
+            progress: 0.0,
+            downloaded: 0,
+            total: 0,
+            status: "Starting download...".to_string(),
+        },
+    );
+
+    // Create HTTP client
+    let client = reqwest::Client::new();
+
+    match client.get(&download_url).send().await {
+        Ok(response) => {
+            let total_size = response.content_length().unwrap_or(0);
+
+            // Create file
+            let file = fs::File::create(&file_path)
+                .map_err(|e| format!("Failed to create file: {}", e))?;
+
+            let mut stream = response.bytes_stream();
+            use futures_util::stream::StreamExt;
+
+            let mut downloaded: u64 = 0;
+            let mut file_writer = std::io::BufWriter::new(file);
+
+            while let Some(chunk) = stream.next().await {
+                let chunk = chunk.map_err(|e| format!("Download error: {}", e))?;
+                file_writer
+                    .write_all(&chunk)
+                    .map_err(|e| format!("Failed to write to file: {}", e))?;
+
+                downloaded += chunk.len() as u64;
+                let progress = if total_size > 0 {
+                    (downloaded as f64 / total_size as f64) * 100.0
+                } else {
+                    0.0
+                };
+
+                // Emit progress event
+                let _ = window.emit(
+                    "download_progress",
+                    DownloadProgress {
+                        app_id: app_id.clone(),
+                        progress,
+                        downloaded,
+                        total: total_size,
+                        status: format!(
+                            "Downloading: {:.1}%",
+                            (downloaded as f64 / total_size.max(1) as f64) * 100.0
+                        ),
+                    },
+                );
+            }
+
+            file_writer
+                .flush()
+                .map_err(|e| format!("Failed to flush file: {}", e))?;
+
+            // Emit completion event
+            let _ = window.emit(
+                "download_complete",
+                DownloadComplete {
+                    app_id: app_id.clone(),
+                    file_path: file_path.to_string_lossy().to_string(),
+                    success: true,
+                    error: None,
+                },
+            );
+
+            Ok(format!("Downloaded app to: {}", file_path.display()))
+        }
+        Err(e) => {
+            let error_msg = format!("Failed to download: {}", e);
+            let _ = window.emit(
+                "download_complete",
+                DownloadComplete {
+                    app_id: app_id.clone(),
+                    file_path: String::new(),
+                    success: false,
+                    error: Some(error_msg.clone()),
+                },
+            );
+            Err(error_msg)
+        }
+    }
+}
+
+fn get_downloads_directory() -> Result<PathBuf, String> {
+    let home = std::env::var("HOME").map_err(|e| format!("Failed to get HOME: {}", e))?;
+    let downloads = PathBuf::from(home).join("Downloads");
+
+    // Create downloads directory if it doesn't exist
+    fs::create_dir_all(&downloads)
+        .map_err(|e| format!("Failed to create downloads directory: {}", e))?;
+
+    Ok(downloads)
 }
 
 // Command to check for updates
