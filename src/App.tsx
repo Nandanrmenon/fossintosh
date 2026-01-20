@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type { App } from "./types/app.types";
@@ -7,6 +7,7 @@ import "./App.css";
 import { AppDetail } from "./components/AppDetail";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { DiscoverPage } from "./pages/DiscoverPage";
+import { SearchResultsPage } from "./pages/SearchResultsPage";
 import { UpdatePage } from "./pages/UpdatePage";
 
 type MenuKey = "discover" | "categories" | "update";
@@ -19,10 +20,23 @@ function App() {
   const [selectedApp, setSelectedApp] = useState<App | null>(null);
   const [activeMenu, setActiveMenu] = useState<MenuKey>("discover");
   const [searchTerm, setSearchTerm] = useState("");
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     loadApps();
     setupEventListeners();
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "f") {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const handleCardClick = (app: App) => {
@@ -221,9 +235,8 @@ function App() {
     }
   };
 
-  const discoverApps = useMemo(() => {
-    if (!searchTerm.trim()) return apps;
-
+  const searchResults = useMemo(() => {
+    if (!searchTerm.trim()) return [] as App[];
     const query = searchTerm.toLowerCase();
     return apps.filter(
       (app) =>
@@ -303,6 +316,7 @@ function App() {
               />
             </svg>
             <input
+              ref={searchInputRef}
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -369,7 +383,18 @@ function App() {
               <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6">
                 {error && <div className="error-message">{error}</div>}
 
-                {activeMenu === "categories" ? (
+                {searchTerm.trim() ? (
+                  <SearchResultsPage
+                    apps={searchResults}
+                    downloadStates={downloadStates}
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    onDownload={handleDownload}
+                    onCancelDownload={handleCancelDownload}
+                    onInstall={handleInstall}
+                    onCardClick={handleCardClick}
+                  />
+                ) : activeMenu === "categories" ? (
                   <CategoriesPage
                     categories={categories}
                     onSelect={handleCategorySelect}
@@ -387,10 +412,7 @@ function App() {
                   />
                 ) : (
                   <DiscoverPage
-                    apps={discoverApps}
                     downloadStates={downloadStates}
-                    searchTerm={searchTerm}
-                    onSearchChange={setSearchTerm}
                     onDownload={handleDownload}
                     onCancelDownload={handleCancelDownload}
                     onInstall={handleInstall}
